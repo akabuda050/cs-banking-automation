@@ -36,7 +36,15 @@ Make POST request to `/cs/export/transactions` with tokens in headers and from/t
 ```bash
 curl -X POST http://localhost:3000/cs/export/transactions \
     -H "Content-Type: application/json" \
-    -H "Web-Api-Key: ${webApiKey}"
-    -H "Authorization: ${authorizationBearer}"
+    -H "Web-Api-Key: ${webApiKey}" \
+    -H "Authorization: ${authorizationBearer}" \
     -d '{"from": "2024-01-01", "to": "2024-01-31"}'
 ```
+
+Endpoints
+
+| Method | Endpoint         | Description                      |
+| ------ | ---------------- | -------------------------------- |
+| POST   | /api/auth/login  | Login with username and password |
+| POST   | /api/auth/logout | Logout the user                  |
+| GET    | /api/auth/status | Check authentication status      |

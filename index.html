@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="author" content="Carl Johnson <ftsys1992@gmail.com>" />
+
+        <title>AI-Powered Tailwind Layout Renderer</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            .loading-icon {
+                border: 4px solid #f3f3f3;
+                border-radius: 50%;
+                border-top: 4px solid #3498db;
+                width: 24px;
+                height: 24px;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+
+    <body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+        <div class="max-w-screen-xl w-full bg-white shadow-md rounded-lg p-4">
+            <h1 class="text-xl font-bold text-gray-800 mb-4">
+                AI-Powered Tailwind Layout Renderer
+                <button id="settingsButton" class="ml-4 text-blue-500 text-sm underline hover:text-blue-700 transition">
+                    Settings
+                </button>
+            </h1>
+
+            <div class="flex space-x-2 mb-4">
+                <textarea
+                    id="prompt"
+                    type="text"
+                    rows="5"
+                    placeholder="Describe your layout..."
+                    class="flex-grow border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                ></textarea>
+                <button
+                    id="sendButton"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 self-end transition"
+                >
+                    Send
+                </button>
+            </div>
+
+            <div id="loading" class="hidden flex justify-center items-center mt-4">
+                <div class="loading-icon"></div>
+                <p class="ml-2 text-sm text-gray-600">Generating layout...</p>
+            </div>
+
+            <div id="chatBox" class="space-y-4 mt-4">
+                <!-- Generated layouts will appear here -->
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 w-96">
+                <h2 class="text-lg font-bold text-gray-800 mb-4">Settings</h2>
+                <label class="block mb-2 font-semibold text-sm">API Key:</label>
+                <input
+                    type="text"
+                    id="apiKeyInput"
+                    class="w-full border border-gray-300 rounded-lg p-2 mb-4"
+                    placeholder="Enter API key"
+                />
+                <label class="block mb-2 font-semibold text-sm">System Instructions:</label>
+                <textarea
+                    id="systemPromptInput"
+                    class="w-full border border-gray-300 rounded-lg p-2 mb-4"
+                    rows="3"
+                    placeholder="Enter system instructions"
+                ></textarea>
+                <label class="block mb-2 font-semibold text-sm">User Instructions:</label>
+                <textarea
+                    id="userPromptInput"
+                    class="w-full border border-gray-300 rounded-lg p-2 mb-4"
+                    rows="3"
+                    placeholder="Enter user instructions"
+                ></textarea>
+                <div class="flex justify-end space-x-2">
+                    <button
+                        id="closeSettingsButton"
+                        class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        id="saveSettingsButton"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                    >
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const promptInput = document.getElementById('prompt');
+            const sendButton = document.getElementById('sendButton');
+            const loading = document.getElementById('loading');
+            const chatBox = document.getElementById('chatBox');
+
+            const settingsButton = document.getElementById('settingsButton');
+            const settingsModal = document.getElementById('settingsModal');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const systemPromptInput = document.getElementById('systemPromptInput');
+            const userPromptInput = document.getElementById('userPromptInput');
+            const saveSettingsButton = document.getElementById('saveSettingsButton');
+            const closeSettingsButton = document.getElementById('closeSettingsButton');
+
+            // Load settings from localStorage/sessionStorage
+            const loadSettings = () => {
+                apiKeyInput.value = sessionStorage.getItem('apiKey') || '';
+                systemPromptInput.value =
+                    localStorage.getItem('systemPrompt') ||
+                    'You are a code generator. Respond with only valid HTML code using Tailwind CSS. Output nothing but the HTML. Do not include explanations or descrrriptions';
+                userPromptInput.value = localStorage.getItem('userPrompt') || '';
+            };
+
+            // Save settings to localStorage/sessionStorage
+            const saveSettings = () => {
+                sessionStorage.setItem('apiKey', apiKeyInput.value.trim());
+                localStorage.setItem('systemPrompt', systemPromptInput.value.trim());
+                localStorage.setItem('userPrompt', userPromptInput.value.trim());
+                alert('Settings saved!');
+            };
+
+            // Open and close the settings modal
+            settingsButton.addEventListener('click', () => {
+                loadSettings();
+                settingsModal.classList.remove('hidden');
+            });
+            closeSettingsButton.addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+            });
+            saveSettingsButton.addEventListener('click', () => {
+                saveSettings();
+                settingsModal.classList.add('hidden');
+            });
+
+            sendButton.addEventListener('click', async () => {
+                const prompt = promptInput.value.trim();
+                const apiKey = sessionStorage.getItem('apiKey');
+                const systemPrompt = localStorage.getItem('systemPrompt');
+                const userPrompt = localStorage.getItem('userPrompt');
+
+                if (!prompt || !apiKey) {
+                    alert('Please enter a prompt and set your API key in settings!');
+                    return;
+                }
+
+                loading.classList.remove('hidden');
+                sendButton.disabled = true;
+
+                try {
+                    const generatedHTML = await fetchAIResponse(prompt, apiKey, systemPrompt, userPrompt);
+
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('p-4', 'border', 'rounded-lg', 'bg-gray-50', 'relative');
+
+                    // Add generated HTML content
+                    const htmlContent = document.createElement('div');
+                    htmlContent.classList.add('generated-html');
+                    htmlContent.innerHTML = generatedHTML;
+
+                    // Add control buttons
+                    const controls = document.createElement('div');
+                    controls.classList.add('absolute', 'top-2', 'right-2', 'flex', 'space-x-2');
+
+                    const copyButton = document.createElement('button');
+                    copyButton.textContent = 'Copy';
+                    copyButton.classList.add('text-blue-500', 'hover:underline');
+                    copyButton.addEventListener('click', () => {
+                        navigator.clipboard.writeText(generatedHTML);
+                        alert('HTML copied to clipboard!');
+                    });
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.classList.add('text-red-500', 'hover:underline');
+                    deleteButton.addEventListener('click', () => {
+                        wrapper.remove();
+                    });
+
+                    controls.appendChild(copyButton);
+                    controls.appendChild(deleteButton);
+
+                    // Append everything to the wrapper
+                    wrapper.appendChild(htmlContent);
+                    wrapper.appendChild(controls);
+
+                    // Add the wrapper to the chat box
+                    chatBox.prepend(wrapper);
+                } catch (error) {
+                    console.error(error);
+                    alert('Failed to generate layout. Please try again!');
+                } finally {
+                    loading.classList.add('hidden');
+                    sendButton.disabled = false;
+                }
+            });
+
+            async function fetchAIResponse(prompt, apiKey, systemPrompt, userPrompt) {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${apiKey}`,
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4',
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: `${userPrompt} Layout description: ${prompt}` },
+                        ],
+                        temperature: 0.7,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('AI API request failed');
+                }
+
+                const data = await response.json();
+                const rawHTML = data.choices[0].message.content.trim();
+
+                // Sanitize response: Remove backticks and code block markers
+                return rawHTML.replace(/```html|```/gm, '').trim();
+            }
+        </script>
+    </body>
+</html>
