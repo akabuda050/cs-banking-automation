@@ -31,8 +31,7 @@ app.use('/cs/auth', authRouter);
 app.use('/cs/api', csRouter);
 
 app.get('/', ensureAuthenticated, (req, res) => {
-    console.log(req.cookies);
-    res.write(fs.readFileSync(path.resolve('dist/index.html'), 'utf-8'));
+    res.write(fs.readFileSync(path.resolve('index.html'), 'utf-8'));
     res.end();
 });
 

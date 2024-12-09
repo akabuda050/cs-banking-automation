@@ -3,3 +3,5 @@ node_modules/
 *.pem
 *.csv
 dist/
+sessions/
+service-account-key-gs.json

@@ -2,8 +2,7 @@ import axios from 'axios';
 
 export const ensureAuthenticated = async (req, res, next) => {
     if (!req.session.tokens) {
-        return res.redirect('/cs/auth/login');
-        //return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 
     try {
@@ -24,9 +23,9 @@ export const ensureAuthenticated = async (req, res, next) => {
         req.session.tokens.access_token = tokenResponse.data.access_token;
     } catch (error) {
         console.error(error);
-        req.session.tokens = undefined;
+        req.session.destroy();
 
-        return res.redirect('/cs/auth/login');
+        return res.status(401).json({ message: 'Unable to refresh tokens' });
     }
 
     next();
@@ -36,5 +35,6 @@ export const ensureGuest = (req, res, next) => {
     if (req.session.tokens) {
         return res.status(403).json({ message: 'You are already logged in on this device.' });
     }
+
     next();
 };

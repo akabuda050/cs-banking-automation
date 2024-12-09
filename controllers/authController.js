@@ -40,7 +40,7 @@ router.get('/callback', async (req, res) => {
         res.end();
     } catch (error) {
         console.error('Error during OAuth callback:', error.message);
-        res.status(500).send('OAuth callback failed');
+        res.status(400);
     }
 });
 

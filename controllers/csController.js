@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import { ensureAuthenticated, ensureGuest } from '../middlewares/authMiddleware.js';
+import { ensureAuthenticated } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -30,7 +30,7 @@ router.get('/accounts', ensureAuthenticated, async (req, res) => {
         res.send(accountsResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -57,7 +57,7 @@ router.get('/accounts/:account/balance', ensureAuthenticated, async (req, res) =
         res.send(balanceResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -93,7 +93,7 @@ router.get('/accounts/:account/transactions', ensureAuthenticated, async (req, r
         res.send(transactionResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -124,7 +124,7 @@ router.get('/accounts/:account/cards', ensureAuthenticated, async (req, res) => 
         res.send(cardsResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -135,7 +135,7 @@ router.get('/accounts/:account/cards', ensureAuthenticated, async (req, res) => 
 router.get('/accounts/:account/cards/:card/reservations', ensureAuthenticated, async (req, res) => {
     const { account, card } = req.params;
     const { reservationState, size, page } = req.query;
-    console.log(card);
+
     try {
         // Exchange the authorization code for tokens
         const cardsResponse = await axios.get(
@@ -157,7 +157,7 @@ router.get('/accounts/:account/cards/:card/reservations', ensureAuthenticated, a
         res.send(cardsResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -191,7 +191,7 @@ router.get('/accounts/:account/cards/:card/transactions', ensureAuthenticated, a
         res.send(cardsResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -218,7 +218,7 @@ router.get('/accounts/:account/cards/:card/reservations/notification', ensureAut
         res.send(cardsResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 
@@ -245,7 +245,7 @@ router.get('/accounts/:account/transactions/notification', ensureAuthenticated, 
         res.send(cardsResponse.data);
     } catch (error) {
         console.error(error);
-        res.status(500).send('OAuth callback failed');
+        res.status(500);
     }
 });
 export default router;
